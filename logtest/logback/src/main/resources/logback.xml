@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--scan: 当此属性设置为true时，配置文件如果发生改变，将会被重新加载，默认值为true。-->
+<!--scanPeriod: 设置监测配置文件是否有修改的时间间隔，如果没有给出时间单位，默认单位是毫秒。
+    当scan为true时，此属性生效。默认的时间间隔为1分钟。-->
+<!--当此属性设置为true时，将打印出logback内部日志信息，实时查看logback运行状态。默认值为false。-->
+<configuration scan="true" scanPeriod="60 seconds" debug="true">
+
+    <!--  属性信息，后面配置中 ${LOG_HOME} 来引用这里的属性 -->
+    <property name="LOG_HOME" value="E:/logback/logs"/>
+
+    <!-- 用来设置上下文名称: 每个logger都关联到logger上下文，默认上下文名称为default。
+        用于区分不同应用程序的记录。一旦设置，不能修改。-->
+    <contextName>logback-test</contextName>
+
+    <!-- 输出到控制台,name指定appender名称,class指定appender的全限定名 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender" >
+        <!-- 等级过滤器，会根据onMath 和 onMismatch接收或拒绝日志 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <!--  DENY：如果方法返回DENY（拒绝），跳出过滤链 -->
+            <!--  ACCEPT：如果返回ACCEPT（通过），则跳出过滤链-->
+            <!--  NRUTRAL：如果返回NRUTRAL（中立），则继续过滤链中的下一个过滤器。-->
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <!-- 求值过滤器 -->
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <!-- 鉴别器，默认为 ch.qos.logback.classic.boolex.JaninoEventEvaluator　-->
+            <!-- 这里过滤掉所有日志消息中不包含“billing”字符串的日志 -->
+            <evaluator>
+                <expression>return message.contains("billing");</expression>
+            </evaluator>
+            <OnMatch>ACCEPT </OnMatch>
+            <OnMismatch>DENY</OnMismatch>
+        </filter>
+
+        <!-- 输出的格式 -->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}:  %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--  滚动记录文件， 先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件。-->
+    <appender name="ROLL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 配置滚动的策略 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 日志名称的格式 -->
+            <!-- 根据 fileNamePattern 属性中的 %d的值的最小时间单位进行滚动。-->
+            <!-- 默认值为 yyyy-MM-dd ，即按照天（一天为一个周期）来进行日志滚动 -->
+            <fileNamePattern>${LOG_HOME}/logback.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <!-- 保存的最长时间：天数 ,默认一天一个文件-->
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}:  %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--
+    注意：
+    level属性也可以直接写在logger上，如：
+    <logger name="ws.log.logback.LogbackTest" additivity="false" level="INFO">
+        <appender-ref ref="STDOUT" />
+    </logger>
+    -->
+    <!--  logger 用来设置某一个包或具体的某一个类的日志打印级别、以及指定<appender>-->
+    <!--  name: 用来指定受此loger约束的某一个包或者具体的某一个类-->
+    <!--  是否向上级loger传递打印信息。默认是true。-->
+    <!--  具体说，默认情况下子Logger会继承root的Logger的appender，也就是说子Logger会在root的Logger的appender里输出。-->
+    <!-- 1.若是additivity设为false，则子Logger只会在自己的appender里输出，不会在root的logger的appender里输出-->
+    <!-- 2.若是additivity设为true，则子Logger不止会在自己的appender里输出，还会在root的logger的appender里输出-->
+    <logger name="ws.log.logback.LogbackTest" additivity="false">
+        <level value="INFO" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <!-- 相当于logger元素，只是name值已经确定为root了 -->
+    <root level="warn">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>
